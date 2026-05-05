@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta name="robots" content="noindex, nofollow">
+		<title>Go-Monitor-Pro</title>
+		<link rel="icon" type="image/x-icon" href="img/favicon.ico">
+		<link rel="apple-touch-icon" href="img/favicon.png">
+		<link href="css/tailwind.min.css" rel="stylesheet">
+	</head>
+	<body class="bg-gray-900 text-white p-4 sm:p-6 md:p-8">
+		<div class="max-w-6xl mx-auto">
+			<header class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+				<h1 class="text-2xl md:text-3xl font-bold text-blue-400">
+					Go-Monitor <span class="text-gray-400 font-light text-lg block sm:inline">v1.0</span>
+				</h1>
+				<div id="status-badge" class="px-3 py-1 rounded-full bg-green-900/30 text-green-400 text-xs border border-green-800">
+					● Live System
+				</div>
+			</header>
+			
+			<div class="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6 mb-8">
+				<div class="bg-gray-800 p-4 md:p-6 rounded-2xl border border-gray-700 shadow-xl">
+					<div class="flex justify-between items-center mb-4">
+						<h2 class="text-gray-400 text-xs md:text-sm font-bold uppercase tracking-widest">CPU Usage</h2>
+						<span id="cpu-val" class="text-lg md:text-xl font-mono text-blue-400 font-bold">0%</span>
+					</div>
+					<div class="h-32 md:h-48">
+						<canvas id="cpuChart"></canvas>
+					</div>
+				</div>
+				<div class="bg-gray-800 p-4 md:p-6 rounded-2xl border border-gray-700 shadow-xl">
+					<div class="flex justify-between items-center mb-4">
+						<h2 class="text-gray-400 text-xs md:text-sm font-bold uppercase tracking-widest">RAM Usage</h2>
+						<span id="ram-val" class="text-lg md:text-xl font-mono text-purple-400 font-bold">0%</span>
+					</div>
+					<div class="h-32 md:h-48">
+						<canvas id="ramChart"></canvas>
+					</div>
+				</div>
+                <div class="bg-gray-800 p-4 md:p-6 rounded-2xl border border-gray-700 shadow-xl">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-gray-400 text-xs md:text-sm font-bold uppercase tracking-widest">Storage</h2>
+                        <span id="disk-val" class="text-lg md:text-xl font-mono text-white font-bold">0%</span>
+                    </div>
+                    <div class="h-40 flex justify-center">
+                        <canvas id="diskChart"></canvas>
+                    </div>
+                </div>
+				<div class="bg-gray-800 p-4 md:p-6 rounded-2xl border border-gray-700 shadow-xl flex flex-col h-full">
+					<h2 class="text-gray-400 text-xs md:text-sm font-bold uppercase tracking-widest mb-4 text-center flex-shrink-0">
+						Network Traffic
+					</h2>
+					
+					<div class="flex-1 flex flex-col md:flex-row gap-6 md:gap-12 justify-center items-center">
+						<div class="flex items-center gap-6">
+							<div class="p-2 bg-blue-900/30 rounded-lg text-blue-400 flex-shrink-0">↓</div>
+							<div>
+								<p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-tight">Download</p>
+								<p id="net-in" class="text-xl md:text-2xl font-mono text-blue-400 leading-none">0.00 MB</p>
+							</div>
+						</div>
+						
+						<div class="flex items-center gap-6">
+							<div class="p-2 bg-green-900/30 rounded-lg text-green-400 flex-shrink-0">↑</div>
+							<div>
+								<p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-tight">Upload</p>
+								<p id="net-out" class="text-xl md:text-2xl font-mono text-green-400 leading-none">0.00 MB</p>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<footer class="flex-shrink-0 mt-auto pt-4 border-t border-gray-800 flex flex-col sm:flex-row justify-between items-center text-[10px] md:text-xs text-gray-500 gap-2">
+				<div>
+					© <span id="year"></span> <span class="text-gray-400 font-semibold">Pudin Saepudin</span>
+				</div>
+				
+				<div class="flex gap-4">
+					<a href="https://italazhar.com" target="_blank" class="hover:text-blue-400 transition-colors flex items-center gap-1">
+						<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path></svg>
+						Website
+					</a>
+					<a href="https://github.com/pudintea" target="_blank" class="hover:text-white transition-colors flex items-center gap-1">
+						<svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"></path></svg>
+						GitHub
+					</a>
+				</div>
+			</footer>
+		</div>
+		<script src="js/chart.js"></script>
+		<script src="js/app.js"></script>
+	</body>
+</html>

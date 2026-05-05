@@ -1,0 +1,31 @@
+> docker login
+Ubah di docker-compose.yml Buat Update ke Docker Hub
+services:
+  app:
+    build: .
+    image: pudinalazhar/go-monitoring:latest
+    container_name: go-monitoring
+    ports:
+      - "8086:8086"
+    restart: unless-stopped
+    environment:
+      - GIN_MODE=release
+
+> docker-compose push app
+
+
+
+JALANKAN DARI DOCKER HUB
+> docker-compose.yml
+
+services:
+  app:
+    image: pudinalazhar/go-monitoring:latest
+    container_name: go-monitoring
+    ports:
+      - "8086:8086"
+    restart: unless-stopped
+    environment:
+      - GIN_MODE=release
+
+== Pudin Saepudin ==
