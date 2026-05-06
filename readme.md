@@ -26,10 +26,12 @@ Masukan Script ini
 ```
 services:
   app:
-    image: pudinalazhar/go-monitoring:latest
-    container_name: go-monitoring
+    image: pudinalazhar/go-monitor:latest
+    container_name: go-monitor
     ports:
       - "8086:8086"
+    volumes:
+      - ./data_db:/app/db  # File sqlite akan tersimpan di folder 'data_db' di host
     restart: unless-stopped
     environment:
       - GIN_MODE=release
@@ -47,7 +49,7 @@ sudo docker compose build --no-cache && docker compose up -d
 
 Log Monitoring
 ```
-docker logs -f go-monitoring
+docker logs -f go-monitor
 ```
 
 Cara Update
@@ -59,3 +61,4 @@ docker-compose pull  && docker-compose up -d
 - https://italazhar.com
 - https://github.com/pudintea
 - https://t.me/pudin_ira
+- https://hub.docker.com/r/pudinalazhar

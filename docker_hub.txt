@@ -3,7 +3,7 @@ Ubah di docker-compose.yml Buat Update ke Docker Hub
 services:
   app:
     build: .
-    image: pudinalazhar/go-monitoring:latest
+    image: pudinalazhar/go-monitor:latest
     container_name: go-monitoring
     ports:
       - "8086:8086"
@@ -11,7 +11,7 @@ services:
     environment:
       - GIN_MODE=release
 
-> docker-compose push app
+> sudo docker compose push app
 
 
 
@@ -20,7 +20,7 @@ JALANKAN DARI DOCKER HUB
 
 services:
   app:
-    image: pudinalazhar/go-monitoring:latest
+    image: pudinalazhar/go-monitor:latest
     container_name: go-monitoring
     ports:
       - "8086:8086"

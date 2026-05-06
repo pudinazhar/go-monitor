@@ -1,7 +1,8 @@
 services:
   app:
     build: .
-    container_name: go-monitoring
+    image: pudinalazhar/go-monitor:latest
+    container_name: go-monitor
     ports:
       - "8086:8086"
     restart: unless-stopped

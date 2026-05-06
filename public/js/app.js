@@ -1,5 +1,6 @@
 // Tahun 
 document.getElementById('year').innerText = new Date().getFullYear();
+// Badge Status
 const badge = document.getElementById('status-badge');
 
 // Konfigurasi Dasar Grafik
@@ -8,10 +9,29 @@ const chartOptions = {
     maintainAspectRatio: false,
     scales: {
         y: { beginAtZero: true, max: 100, grid: { color: '#374151' } },
-        x: { display: false }
+        x: { display: false } // Tetap sembunyikan label di sumbu X agar tidak berantakan
     },
-    plugins: { legend: { display: false } },
-    elements: { line: { tension: 0.4 }, point: { radius: 0 } },
+    plugins: { 
+        legend: { display: false },
+        tooltip: {
+            enabled: true, // Pastikan ini true
+            mode: 'index',
+            intersect: false,
+            backgroundColor: 'rgba(17, 24, 39, 0.8)', // Warna dark menyesuaikan dashboard
+            titleFont: { size: 12 },
+            bodyFont: { size: 12 },
+            callbacks: {
+                label: function(context) {
+                    return ` Usage: ${context.parsed.y.toFixed(1)}%`;
+                }
+            }
+        }
+    },
+    hover: {
+        mode: 'index',
+        intersect: false
+    },
+    elements: { line: { tension: 0.4 }, point: { radius: 0, hoverRadius: 5 } }, // Radius 0 agar bersih, hoverRadius 5 agar muncul titik saat mouse dekat
     animation: { duration: 500 }
 };
 
@@ -72,7 +92,41 @@ const ramChart = new Chart(ramCtx, {
     options: chartOptions
 });
 
+// Fungsi untuk memuat data lama dari Database
+async function loadHistory() {
+    try {
+        const response = await fetch('/history');
+        const data = await response.json();
+        
+        if (data && data.length > 0) {
+            cpuChart.data.datasets[0].data = [];
+            ramChart.data.datasets[0].data = [];
+            cpuChart.data.labels = [];
+            ramChart.data.labels = [];
+            
+            data.forEach(item => {
+                cpuChart.data.datasets[0].data.push(item.cpu);
+                ramChart.data.datasets[0].data.push(item.ram);
+                
+                // Jika backend mengirim created_at, gunakan itu. 
+                // Jika tidak, kita bisa gunakan jam saat ini sebagai perkiraan
+                const timeLabel = new Date().toLocaleTimeString('id-ID'); 
+                cpuChart.data.labels.push(timeLabel);
+                ramChart.data.labels.push(timeLabel);
+            });
+            
+            cpuChart.update();
+            ramChart.update();
+        }
+    } catch (err) {
+        console.error("Gagal memuat histori:", err);
+    }
+}
+
 function connect() {
+    // 1. Muat histori dulu sebelum konek WebSocket
+    loadHistory();
+
     // 1. Deteksi protokol: jika https gunakan wss, jika http gunakan ws
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     
@@ -91,6 +145,7 @@ function connect() {
 
     socket.onmessage = (event) => {
         const data = JSON.parse(event.data);
+        const now = new Date().toLocaleTimeString('id-ID');
     
         // ... kode update CPU & RAM ...
         document.getElementById('disk-val').innerText = data.disk.toFixed(1) + '%';
@@ -112,13 +167,24 @@ function connect() {
         document.getElementById('net-in').innerText = `${mbIn} MB`;
         document.getElementById('net-out').innerText = `${mbOut} MB`;
 
-        // Update Charts
+        // Update Charts CPU
         cpuChart.data.datasets[0].data.push(data.cpu);
-        cpuChart.data.datasets[0].data.shift();
+        cpuChart.data.labels.push(now); // Masukkan waktu ke label
+
+        if (cpuChart.data.datasets[0].data.length > 900) {
+            cpuChart.data.datasets[0].data.shift();
+            cpuChart.data.labels.shift();
+        }
         cpuChart.update('none');
 
+        // Update Charts RAM
         ramChart.data.datasets[0].data.push(data.ram);
-        ramChart.data.datasets[0].data.shift();
+        ramChart.data.labels.push(now);
+
+        if (ramChart.data.datasets[0].data.length > 900) {
+            ramChart.data.datasets[0].data.shift();
+            ramChart.data.labels.shift();
+        }
         ramChart.update('none');
     };
 
