@@ -14,15 +14,14 @@ const chartOptions = {
     plugins: { 
         legend: { display: false },
         tooltip: {
-            enabled: true, // Pastikan ini true
-            mode: 'index',
-            intersect: false,
-            backgroundColor: 'rgba(17, 24, 39, 0.8)', // Warna dark menyesuaikan dashboard
-            titleFont: { size: 12 },
-            bodyFont: { size: 12 },
+            enabled: true,
             callbacks: {
+                title: function(context) {
+                    // Ini akan memunculkan jam di bagian atas kotak hitam tooltip
+                    return "Waktu: " + context[0].label;
+                },
                 label: function(context) {
-                    return ` Usage: ${context.parsed.y.toFixed(1)}%`;
+                    return ` Penggunaan: ${context.parsed.y.toFixed(1)}%`;
                 }
             }
         }
@@ -108,11 +107,12 @@ async function loadHistory() {
                 cpuChart.data.datasets[0].data.push(item.cpu);
                 ramChart.data.datasets[0].data.push(item.ram);
                 
-                // Jika backend mengirim created_at, gunakan itu. 
-                // Jika tidak, kita bisa gunakan jam saat ini sebagai perkiraan
-                const timeLabel = new Date().toLocaleTimeString('id-ID'); 
-                cpuChart.data.labels.push(timeLabel);
-                ramChart.data.labels.push(timeLabel);
+                // Jika ada item.time dari DB, pakai itu langsung. 
+                // Jika kosong (mungkin data baru), pakai waktu lokal saat ini.
+                const Timelabel = item.time ? item.time : new Date().toLocaleTimeString('id-ID');
+
+                cpuChart.data.labels.push(Timelabel);
+                ramChart.data.labels.push(Timelabel);
             });
             
             cpuChart.update();
@@ -145,7 +145,10 @@ function connect() {
 
     socket.onmessage = (event) => {
         const data = JSON.parse(event.data);
-        const now = new Date().toLocaleTimeString('id-ID');
+        const now = new Date();
+        const timeLabel = now.getHours().toString().padStart(2, '0') + ":" + 
+                      now.getMinutes().toString().padStart(2, '0') + ":" + 
+                      now.getSeconds().toString().padStart(2, '0');
     
         // ... kode update CPU & RAM ...
         document.getElementById('disk-val').innerText = data.disk.toFixed(1) + '%';
@@ -167,9 +170,9 @@ function connect() {
         document.getElementById('net-in').innerText = `${mbIn} MB`;
         document.getElementById('net-out').innerText = `${mbOut} MB`;
 
-        // Update Charts CPU
+        // --- Update CPU Chart ---
         cpuChart.data.datasets[0].data.push(data.cpu);
-        cpuChart.data.labels.push(now); // Masukkan waktu ke label
+        cpuChart.data.labels.push(timeLabel); // Masukkan label waktu baru
 
         if (cpuChart.data.datasets[0].data.length > 900) {
             cpuChart.data.datasets[0].data.shift();
@@ -177,9 +180,9 @@ function connect() {
         }
         cpuChart.update('none');
 
-        // Update Charts RAM
+        // --- Update RAM Chart ---
         ramChart.data.datasets[0].data.push(data.ram);
-        ramChart.data.labels.push(now);
+        ramChart.data.labels.push(timeLabel); // Masukkan label waktu baru
 
         if (ramChart.data.datasets[0].data.length > 900) {
             ramChart.data.datasets[0].data.shift();

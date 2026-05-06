@@ -51,6 +51,7 @@ func getSystemStats() Stats {
 		Disk:   d.UsedPercent,
 		NetIn:  in,
 		NetOut: out,
+		Time:   time.Now().Format("15:04:05"),
 	}
 }
 
@@ -110,7 +111,7 @@ func initDB() {
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		cpu REAL,
 		ram REAL,
-		created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+		time DATETIME DEFAULT CURRENT_TIMESTAMP
 	);
 	`
 	_, err = db.Exec(sqlStmt)
@@ -121,7 +122,9 @@ func initDB() {
 
 // Fungsi untuk menyimpan data
 func saveToDB(cpu, ram float64) {
-	_, err := db.Exec("INSERT INTO stats (cpu, ram, created_at) VALUES (?, ?, ?)", cpu, ram, time.Now())
+	// Gunakan format "2006-01-02 15:04:05" (ini adalah layout standar di Go)
+	currentTime := time.Now().Format("2006-01-02 15:04:05")
+	_, err := db.Exec("INSERT INTO stats (cpu, ram, time) VALUES (?, ?, ?)", cpu, ram, currentTime)
 	if err != nil {
 		fmt.Println("Gagal simpan ke DB:", err)
 	}
@@ -130,7 +133,7 @@ func saveToDB(cpu, ram float64) {
 // Fungsi pembersih data > 1 jam
 func cleanupDB() {
 	for {
-		_, err := db.Exec("DELETE FROM stats WHERE created_at < datetime('now', '-1 hour')")
+		_, err := db.Exec("DELETE FROM stats WHERE time < datetime('now', '-1 hour')")
 		if err != nil {
 			fmt.Println("Gagal cleanup:", err)
 		}
@@ -140,7 +143,7 @@ func cleanupDB() {
 
 // Endpoint baru untuk mengambil data 1 jam terakhir
 func getHistoryHandler(w http.ResponseWriter, r *http.Request) {
-	rows, err := db.Query("SELECT cpu, ram FROM stats WHERE created_at > datetime('now', '-1 hour') ORDER BY created_at ASC")
+	rows, err := db.Query("SELECT cpu, ram, substr(time, 12, 8) FROM stats WHERE time > datetime('now', '-1 hour') ORDER BY time ASC")
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return
@@ -150,7 +153,7 @@ func getHistoryHandler(w http.ResponseWriter, r *http.Request) {
 	var history []Stats
 	for rows.Next() {
 		var s Stats
-		rows.Scan(&s.CPU, &s.RAM)
+		rows.Scan(&s.CPU, &s.RAM, &s.Time)
 		history = append(history, s)
 	}
 
@@ -166,6 +169,6 @@ func main() {
 	http.Handle("/", http.FileServer(http.Dir("./public")))
 	http.HandleFunc("/ws", handleConnections)
 	http.HandleFunc("/history", getHistoryHandler)
-	fmt.Println("Server berjalan di http://localhost:8086")
+	fmt.Println("Server berjalan di port :8086")
 	http.ListenAndServe(":8086", nil)
 }
