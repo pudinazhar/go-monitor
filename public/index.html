@@ -24,7 +24,7 @@
 				<div class="bg-gray-800 p-4 md:p-6 rounded-2xl border border-gray-700 shadow-xl">
 					<div class="flex justify-between items-center mb-4">
 						<h2 class="text-gray-400 text-xs md:text-sm font-bold uppercase tracking-widest">CPU Usage</h2>
-						<span id="cpu-val" class="text-lg md:text-xl font-mono text-blue-400 font-bold">0%</span>
+						<span class="text-lg md:text-xl font-mono text-blue-400 font-bold"><span id="cpu-val">0%</span> / <span id="cpu-cores">0</span> Core</span>
 					</div>
 					<div class="h-32 md:h-48">
 						<canvas id="cpuChart"></canvas>
@@ -33,7 +33,7 @@
 				<div class="bg-gray-800 p-4 md:p-6 rounded-2xl border border-gray-700 shadow-xl">
 					<div class="flex justify-between items-center mb-4">
 						<h2 class="text-gray-400 text-xs md:text-sm font-bold uppercase tracking-widest">RAM Usage</h2>
-						<span id="ram-val" class="text-lg md:text-xl font-mono text-purple-400 font-bold">0%</span>
+						<span class="text-lg md:text-xl font-mono text-purple-400 font-bold"><span id="ram-val">0%</span> / <span id="ram-total">0</span> GB</span>
 					</div>
 					<div class="h-32 md:h-48">
 						<canvas id="ramChart"></canvas>
@@ -42,7 +42,7 @@
                 <div class="bg-gray-800 p-4 md:p-6 rounded-2xl border border-gray-700 shadow-xl">
                     <div class="flex justify-between items-center mb-4">
                         <h2 class="text-gray-400 text-xs md:text-sm font-bold uppercase tracking-widest">Storage</h2>
-                        <span id="disk-val" class="text-lg md:text-xl font-mono text-white font-bold">0%</span>
+                        <span  class="text-lg md:text-xl font-mono text-purple-400 font-bold"><span id="disk-val">0%</span> / <span id="disk-total">0</span> GB</span>
                     </div>
                     <div class="h-40 flex justify-center">
                         <canvas id="diskChart"></canvas>

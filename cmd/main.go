@@ -18,12 +18,15 @@ import (
 
 // 1. Definisikan Struktur Data di Luar
 type Stats struct {
-	CPU    float64 `json:"cpu"`
-	RAM    float64 `json:"ram"`
-	Disk   float64 `json:"disk"`
-	NetIn  uint64  `json:"net_in"`
-	NetOut uint64  `json:"net_out"`
-	Time   string  `json:"time"`
+	CPU       float64 `json:"cpu"`
+	CPUCores  int     `json:"cpu_cores"` // Jumlah Core
+	RAM       float64 `json:"ram"`
+	RAMTotal  float64 `json:"ram_total"` // Total RAM (GB)
+	Disk      float64 `json:"disk"`
+	DiskTotal float64 `json:"disk_total"` // Total Disk (GB)
+	NetIn     uint64  `json:"net_in"`
+	NetOut    uint64  `json:"net_out"`
+	Time      string  `json:"time"`
 }
 
 // 2. Variabel Konfigurasi
@@ -45,13 +48,19 @@ func getSystemStats() Stats {
 		out = n[0].BytesSent
 	}
 
+	// Hitung total core
+	cores, _ := cpu.Counts(true)
+
 	return Stats{
-		CPU:    c[0],
-		RAM:    m.UsedPercent,
-		Disk:   d.UsedPercent,
-		NetIn:  in,
-		NetOut: out,
-		Time:   time.Now().Format("15:04:05"),
+		CPU:       c[0],
+		CPUCores:  cores,
+		RAM:       m.UsedPercent,
+		RAMTotal:  float64(m.Total) / 1024 / 1024 / 1024, // Convert ke GB
+		Disk:      d.UsedPercent,
+		DiskTotal: float64(d.Total) / 1024 / 1024 / 1024, // Convert ke GB
+		NetIn:     in,
+		NetOut:    out,
+		Time:      time.Now().Format("15:04:05"),
 	}
 }
 
@@ -133,17 +142,26 @@ func saveToDB(cpu, ram float64) {
 // Fungsi pembersih data > 1 jam
 func cleanupDB() {
 	for {
-		_, err := db.Exec("DELETE FROM stats WHERE time < datetime('now', '-1 hour')")
+		time.Sleep(10 * time.Minute)
+		// Gunakan "time" sesuai nama kolom di tabel kamu
+		_, err := db.Exec(`DELETE FROM stats WHERE "time" < datetime('now', '-1 hour', 'localtime')`)
 		if err != nil {
-			fmt.Println("Gagal cleanup:", err)
+			fmt.Println("Gagal cleanup database:", err)
 		}
-		time.Sleep(10 * time.Minute) // Cek setiap 10 menit
 	}
 }
 
 // Endpoint baru untuk mengambil data 1 jam terakhir
 func getHistoryHandler(w http.ResponseWriter, r *http.Request) {
-	rows, err := db.Query("SELECT cpu, ram, substr(time, 12, 8) FROM stats WHERE time > datetime('now', '-1 hour') ORDER BY time ASC")
+	// Kita gunakan "time" (nama kolom kamu)
+	// Kita ambil jam:menit:detik menggunakan substr karena format kamu string lengkap
+	query := `
+        SELECT cpu, ram, substr("time", 12, 8) 
+        FROM stats 
+        WHERE "time" > datetime('now', '-1 hour', 'localtime') 
+        ORDER BY "time" ASC`
+
+	rows, err := db.Query(query)
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return
@@ -153,7 +171,12 @@ func getHistoryHandler(w http.ResponseWriter, r *http.Request) {
 	var history []Stats
 	for rows.Next() {
 		var s Stats
-		rows.Scan(&s.CPU, &s.RAM, &s.Time)
+		// Scan data: cpu -> s.CPU, ram -> s.RAM, substr -> s.Time
+		err := rows.Scan(&s.CPU, &s.RAM, &s.Time)
+		if err != nil {
+			fmt.Println("Error scan:", err)
+			continue
+		}
 		history = append(history, s)
 	}
 

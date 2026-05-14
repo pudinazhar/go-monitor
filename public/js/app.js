@@ -162,7 +162,12 @@ function connect() {
         
         document.getElementById('cpu-val').innerText = data.cpu.toFixed(1) + '%';
         document.getElementById('ram-val').innerText = data.ram.toFixed(1) + '%';
-        
+
+        // Update Kapasitas Total (Hanya jika datanya ada)
+        if(data.cpu_cores) document.getElementById('cpu-cores').innerText = data.cpu_cores;
+        if(data.ram_total) document.getElementById('ram-total').innerText = data.ram_total.toFixed(0);
+        if(data.disk_total) document.getElementById('disk-total').innerText = data.disk_total.toFixed(0);
+
         const mbIn = (data.net_in / 1024 / 1024).toFixed(2);
         const mbOut = (data.net_out / 1024 / 1024).toFixed(2);
         
