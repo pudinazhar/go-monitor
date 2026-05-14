@@ -57,6 +57,9 @@ Cara Update
 docker-compose pull  && docker-compose up -d
 ```
 
+## Binnary dan Systemd di linux
+Silahkan cek pada file systemd.md
+
 ### Pudin Saepudin
 - https://italazhar.com
 - https://github.com/pudintea
